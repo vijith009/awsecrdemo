@@ -52,6 +52,7 @@ jobs:
         env:
           CLUSTER_NAME: "my-eks-cluster"
           AWS_REGION: ${{ secrets.AWS_REGION }}
+          SUBNET_IDS: ${{ secrets.SUBNET_IDS }}
         run: |
           aws eks create-nodegroup \
             --cluster-name $CLUSTER_NAME \
