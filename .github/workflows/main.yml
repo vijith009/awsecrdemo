@@ -38,17 +38,27 @@ jobs:
       - name: Create EKS Cluster
         env:
           CLUSTER_NAME: "my-eks-cluster"
+          AWS_REGION: ${{ secrets.AWS_REGION }}
         run: |
           aws eks create-cluster \
             --name $CLUSTER_NAME \
             --role-arn ${{ secrets.EKS_ROLE_ARN }} \
-            --resources-vpc-config subnetIds=${{ secrets.SUBNET_IDS }},securityGroupIds=${{ secrets.SECURITY_GROUP_IDS }}
+            --resources-vpc-config subnetIds=${{ secrets.SUBNET_IDS }},securityGroupIds=${{ secrets.SECURITY_GROUP_IDS }} \
+            --region $AWS_REGION
 
-          aws eks wait cluster-active --name $CLUSTER_NAME
+          aws eks wait cluster-active --name $CLUSTER_NAME --region $AWS_REGION
 
       - name: Update kubeconfig
+        env:
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+          CLUSTER_NAME: "my-eks-cluster"
         run: |
-          aws eks update-kubeconfig --name $CLUSTER_NAME
+          echo "Cluster Name is: $CLUSTER_NAME"  # Verifies CLUSTER_NAME is set
+          if [ -z "$CLUSTER_NAME" ]; then
+            echo "CLUSTER_NAME is not set."
+            exit 1
+          fi
+          aws eks update-kubeconfig --name "$CLUSTER_NAME" --region "$AWS_REGION"
 
       - name: Deploy to EKS
         env:
